@@ -9,4 +9,5 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- Added doc_qa_cli: lexical retrieval over text/Markdown folders, injected LLM answering with verified citations, NOT_FOUND handling, and a `doc-qa-cli` command.
 - Initial project structure from the factory utility template.

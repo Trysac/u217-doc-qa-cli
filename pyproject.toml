@@ -19,6 +19,9 @@ classifiers = [
 ]
 dependencies = []
 
+[project.scripts]
+doc-qa-cli = "doc_qa_cli.__main__:main"
+
 [project.urls]
 Homepage = "https://github.com/Trysac/u217-doc-qa-cli"
 Source = "https://github.com/Trysac/u217-doc-qa-cli"

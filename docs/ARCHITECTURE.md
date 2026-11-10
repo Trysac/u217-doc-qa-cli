@@ -9,15 +9,23 @@
 ```text
 caller code --> doc_qa_cli (public API in __init__.py)
                     |
-                    +-- pure functions, no I/O, no global state
+                    +-- load_folder: bounded filesystem reads
+                    +-- retrieve/answer: pure scoring and prompt building
 ```
 
 - **Public API**: the names listed in `__all__` of `src/doc_qa_cli/__init__.py`. Anything else is
   internal and may change without a major version.
-- **Errors**: invalid input raises built-in exceptions (`ValueError`, `TypeError`) with a clear
-  message; the library never prints or exits.
-- **Side effects**: none. If a feature needs I/O, isolate it in its own module behind a small
-  interface and record the choice in an ADR.
+- **I/O**: `load_folder` walks the directory tree under `root`, reads and decodes file bytes and
+  calls the optional `on_event` callback. The walk is bounded by `max_files` and `max_file_bytes`,
+  only UTF-8 files are accepted, symlinks are resolved and must stay inside `root`, and skipped
+  files are reported through `on_event` with a path and a reason code (never file contents).
+  `retrieve` and `answer` perform no I/O; `answer` only calls the injected LLM.
+- **Errors**: invalid input raises `QaError` with `code` in
+  `{'too_many_files', 'invalid_question', 'invalid_root'}`, for example a missing root, a question
+  outside the 1-2000 character range or too many eligible files. Exceptions from the injected LLM
+  propagate unchanged. The library never prints or exits; that is the CLI's job.
+- **Side effects**: none beyond the filesystem reads and `on_event` calls in `load_folder`; there is
+  no global mutable state and no printing from the library.
 
 ## Quality contract
 
