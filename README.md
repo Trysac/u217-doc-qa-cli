@@ -1,48 +1,46 @@
 # doc-qa-cli
 
+Answer questions about a folder of Markdown and text files with an injected LLM, lexical retrieval, escaped excerpts and citations whose verbatim quotes are verified.
+
 [![PyPI version](https://img.shields.io/pypi/v/trysac-doc-qa-cli)](https://pypi.org/project/trysac-doc-qa-cli/)
-[![License: MIT](https://img.shields.io/pypi/l/trysac-doc-qa-cli)](LICENSE)
-[![CI](https://github.com/Trysac/u217-doc-qa-cli/actions/workflows/ci.yml/badge.svg)](https://github.com/Trysac/u217-doc-qa-cli/actions/workflows/ci.yml)
+[![Python versions](https://img.shields.io/pypi/pyversions/trysac-doc-qa-cli)](https://pypi.org/project/trysac-doc-qa-cli/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-Answer questions about a folder of Markdown and text files with an injected LLM, lexical retrieval, escaped excerpts and citations whose verbatim quotes are verified
+## Features
 
-## Problem
+- Load paragraphs from `.md` and `.txt` files with size, encoding and symlink safety.
+- Lexical retrieval using casefolded token overlap and IDF scoring.
+- Injected LLM through a tiny `LLMPort` protocol (bring your own provider).
+- Every citation quote is verified against the excerpt before a result is marked verified.
+- NOT_FOUND handling when no excerpt matches the question or the model says so.
+- Zero runtime dependencies.
 
-Describe in two or three sentences the concrete problem this utility solves, who hits it, and what
-they do today without it. Replace this paragraph when the first real feature lands.
+## Installation
 
-## Install
-
-```sh
+```bash
 pip install trysac-doc-qa-cli
-# or
-uv add trysac-doc-qa-cli
 ```
-
-Requires Python 3.10 or newer. No runtime dependencies.
 
 ## Usage
 
+### Library
+
 ```python
-import doc_qa_cli
+from doc_qa_cli import load_folder, answer, RecordedLLM
 
-# normalize() trims surrounding whitespace and lower-cases the text.
-print(doc_qa_cli.normalize("  Hello World "))  # -> "hello world"
-
-# Blank input is rejected explicitly instead of returning an empty string.
-try:
-    doc_qa_cli.normalize("   ")
-except ValueError as exc:
-    print(f"rejected: {exc}")
+corpus = load_folder("docs")
+llm = RecordedLLM(['It listens on port 8080 [README.md#2: "listens on port 8080"].'])
+result = answer("Which port?", corpus, llm)
+print(result.text, result.verified)
 ```
 
-## Documentation
+### CLI
 
-- [Architecture](docs/ARCHITECTURE.md) and [decisions](docs/decisions/)
-- [Testing](docs/TESTING.md) and [security](docs/SECURITY.md)
-- [Project record](docs/PROJECT.md) and [stack](docs/STACK.md)
-- [Changelog](CHANGELOG.md) and [contributing guide](CONTRIBUTING.md)
+```bash
+doc-qa-cli search docs "port"
+doc-qa-cli ask docs "Which port?" --llm my_provider:make
+```
 
-## License
+`search` prints one chunk id per line. `ask` prints the model answer followed by all extracted citations, and returns exit code 0 when every quotation is verified, 1 otherwise, 2 for usage/IO errors.
 
-[MIT](LICENSE) (c) 2026 Miguel Gomez
+See `docs/` for architecture, security and testing information.
